@@ -1,11 +1,23 @@
+import { useState } from 'react'
+import SettingsTabs from '../components/settings/SettingsTabs'
+import GeneralSettings from '../components/settings/GeneralSettings'
+import RolesPermissions from '../components/settings/RolesPermissions'
+import ModerationDefaults from '../components/settings/ModerationDefaults'
+
 /**
  * SettingsPage
- * NB: page à construire (prochaines étapes).
+ * Paramètres admin : configuration générale, rôles & permissions, modération.
  */
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState('general')
+
   return (
     <div className="p-6">
-      <p className="text-[#b6bedd] text-sm">Section à venir.</p>
+      <SettingsTabs activeTab={activeTab} onChange={setActiveTab} />
+
+      {activeTab === 'general' && <GeneralSettings />}
+      {activeTab === 'roles' && <RolesPermissions />}
+      {activeTab === 'moderation' && <ModerationDefaults />}
     </div>
   )
 }
