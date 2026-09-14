@@ -1,0 +1,11 @@
+{
+  "name": "youth-computing-monorepo",
+  "private": true,
+  "scripts": {
+    "dev:chat": "pnpm --filter @yc/chat dev",
+    "dev:admin": "pnpm --filter @yc/admin dev",
+    "build:chat": "pnpm --filter @yc/chat build",
+    "build:admin": "pnpm --filter @yc/admin build",
+    "build": "pnpm -r build"
+  }
+}

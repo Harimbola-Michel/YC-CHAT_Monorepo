@@ -1,0 +1,102 @@
+/**
+ * moderation
+ * Données de démonstration pour la page Modération.
+ * NB: en dur pour l'instant — à remplacer par le flux réel (API).
+ */
+export const initialReports = [
+  {
+    id: 1,
+    reporterName: 'Amélia',
+    reporterInitials: 'AM',
+    reporterColor: '#3b4b9e',
+    targetType: 'message',
+    targetUser: 'Mioratiana',
+    excerpt: "Contenu jugé insultant envers un autre membre de l'équipe.",
+    channel: 'main-chat',
+    reason: 'Harcèlement',
+    status: 'pending',
+    createdAt: 'Il y a 2h',
+  },
+  {
+    id: 2,
+    reporterName: 'Jabihy',
+    reporterInitials: 'JB',
+    reporterColor: '#3b4b9e',
+    targetType: 'user',
+    targetUser: 'Buddy',
+    excerpt: 'Envoie des liens suspects en message privé à plusieurs membres.',
+    channel: null,
+    reason: 'Spam / lien suspect',
+    status: 'pending',
+    createdAt: 'Il y a 5h',
+  },
+  {
+    id: 3,
+    reporterName: 'Erica Sarobidy',
+    reporterInitials: 'ES',
+    reporterColor: '#5b6280',
+    targetType: 'message',
+    targetUser: 'Liantsoa Jenny',
+    excerpt: 'Message hors-sujet répété plusieurs fois dans le canal.',
+    channel: 'announcement',
+    reason: 'Contenu hors-sujet',
+    status: 'resolved',
+    createdAt: 'Hier',
+  },
+  {
+    id: 4,
+    reporterName: 'PAPEO Miantsa',
+    reporterInitials: 'PM',
+    reporterColor: '#3b4b9e',
+    targetType: 'message',
+    targetUser: 'Mioratiana',
+    excerpt: "Propos jugés déplacés dans le canal de l'équipe communautaire.",
+    channel: 'community-team',
+    reason: 'Langage inapproprié',
+    status: 'dismissed',
+    createdAt: 'Il y a 2 jours',
+  },
+]
+
+export const actionLog = [
+  {
+    id: 1,
+    actor: 'Michel-Harimbola',
+    action: 'ban',
+    label: 'a banni',
+    target: 'Mioratiana',
+    timestamp: 'Il y a 1h',
+  },
+  {
+    id: 2,
+    actor: 'Michel-Harimbola',
+    action: 'resolve',
+    label: 'a résolu le signalement contre',
+    target: 'Liantsoa Jenny',
+    timestamp: 'Hier',
+  },
+  {
+    id: 3,
+    actor: 'Amélia',
+    action: 'suspend',
+    label: 'a suspendu',
+    target: 'Erica Sarobidy',
+    timestamp: 'Il y a 3 jours',
+  },
+  {
+    id: 4,
+    actor: 'Michel-Harimbola',
+    action: 'delete',
+    label: 'a supprimé un message de',
+    target: 'PAPEO Miantsa',
+    timestamp: 'Il y a 4 jours',
+  },
+  {
+    id: 5,
+    actor: 'Michel-Harimbola',
+    action: 'dismiss',
+    label: 'a rejeté le signalement contre',
+    target: 'Mioratiana',
+    timestamp: 'Il y a 5 jours',
+  },
+]
