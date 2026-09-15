@@ -3,6 +3,7 @@ import ChatHeader from './ChatHeader'
 import MessageList from './MessageList'
 import TypingIndicator from './TypingIndicator'
 import MessageInput from './MessageInput'
+import { classNames } from '../../utils/classNames'
 
 /**
  * ChatWindow
@@ -15,6 +16,8 @@ export default function ChatWindow({
   onSendMessage,
   showMembers,
   onToggleMembers,
+  onBack,
+  className,
 }) {
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -29,7 +32,7 @@ export default function ChatWindow({
   }, [messages, searchQuery])
 
   return (
-    <section className="flex-1 flex flex-col bg-[#081246] min-w-0">
+    <section className={classNames('flex-1 flex-col bg-[#081246] min-w-0', className)}>
       <ChatHeader
         channelName={channel.name}
         channelType={channel.type}
@@ -37,6 +40,7 @@ export default function ChatWindow({
         onToggleMembers={onToggleMembers}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onBack={onBack}
       />
       <MessageList messages={filteredMessages} />
       <TypingIndicator />

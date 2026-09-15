@@ -13,13 +13,15 @@ import {
 } from 'lucide-react'
 import { categories } from '../../constants/channels'
 import SettingsModal from '../settings/SettingsModal'
+import { classNames } from '../../utils/classNames'
 
 /**
  * ChannelSidebar
- * Sidebar de 240px façon Discord : en-tête serveur (avec menu), catégories
- * repliables, liste de canaux (texte/vocal), bandeau utilisateur fixe en bas.
+ * Sidebar : pleine largeur sur mobile, 240px à partir de sm. En-tête serveur
+ * (avec menu), catégories repliables, liste de canaux (texte/vocal),
+ * bandeau utilisateur fixe en bas.
  */
-export default function ChannelSidebar({ activeChannelId, onSelectChannel }) {
+export default function ChannelSidebar({ activeChannelId, onSelectChannel, className }) {
   const [openCategories, setOpenCategories] = useState(
     () => Object.fromEntries(categories.map((c) => [c.id, true]))
   )
@@ -32,7 +34,12 @@ export default function ChannelSidebar({ activeChannelId, onSelectChannel }) {
     setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }))
 
   return (
-    <aside className="w-60 shrink-0 h-full bg-[#050f3d] flex flex-col relative">
+    <aside
+      className={classNames(
+        'flex-1 min-w-0 sm:flex-none sm:w-60 shrink-0 h-full bg-[#050f3d] flex-col relative',
+        className
+      )}
+    >
       {/* En-tête serveur */}
       <button
         onClick={() => setMenuOpen((prev) => !prev)}
@@ -131,7 +138,7 @@ export default function ChannelSidebar({ activeChannelId, onSelectChannel }) {
             {deafened ? 'Casque coupé' : micMuted ? 'Micro coupé' : 'Online'}
           </p>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => setMicMuted((prev) => !prev)}
             aria-pressed={micMuted}

@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Hash, Volume2, Bell, BellOff, Pin, Users, Search, X } from 'lucide-react'
+import { Hash, Volume2, Bell, BellOff, Pin, Users, Search, X, ChevronLeft } from 'lucide-react'
 
 /**
  * ChatHeader
- * En-tête du canal actif : icône + nom, actions à droite (façon Discord).
+ * En-tête du canal actif : bouton retour (mobile), icône + nom, actions à droite.
  */
 export default function ChatHeader({
   channelName,
@@ -12,14 +12,22 @@ export default function ChatHeader({
   onToggleMembers,
   searchQuery,
   onSearchChange,
+  onBack,
 }) {
   const [muted, setMuted] = useState(false)
   const [pinOpen, setPinOpen] = useState(false)
   const Icon = channelType === 'voice' ? Volume2 : Hash
 
   return (
-    <header className="h-12 shrink-0 flex items-center justify-between px-4 border-b border-white/10 bg-[#081246] relative">
-      <div className="flex items-center gap-2 min-w-0">
+    <header className="h-12 shrink-0 flex items-center justify-between px-2 sm:px-4 border-b border-white/10 bg-[#081246] relative">
+      <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+        <button
+          onClick={onBack}
+          title="Retour aux canaux"
+          className="sm:hidden w-8 h-8 flex items-center justify-center rounded-md text-[#b6bedd] hover:bg-white/10 hover:text-white transition-colors shrink-0"
+        >
+          <ChevronLeft className="w-5 h-5" strokeWidth={2} />
+        </button>
         <Icon className="w-5 h-5 text-[#b6bedd] shrink-0" strokeWidth={2} />
         <span className="text-white font-semibold text-[15px] truncate">{channelName}</span>
       </div>
@@ -60,20 +68,20 @@ export default function ChatHeader({
           onClick={onToggleMembers}
           aria-pressed={showMembers}
           title="Membres"
-          className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
+          className={`hidden lg:flex w-8 h-8 items-center justify-center rounded-md transition-colors ${
             showMembers ? 'text-white bg-white/10' : 'hover:bg-white/10 hover:text-white'
           }`}
         >
           <Users className="w-5 h-5" strokeWidth={1.75} />
         </button>
 
-        <div className="flex items-center bg-[#10184f] rounded-md px-2 py-1.5 ml-2">
+        <div className="flex items-center bg-[#10184f] rounded-md px-2 py-1.5 ml-1 sm:ml-2">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder="Rechercher"
-            className="bg-transparent outline-none text-sm text-white placeholder:text-[#b6bedd] w-28"
+            className="bg-transparent outline-none text-sm text-white placeholder:text-[#b6bedd] w-16 sm:w-28"
           />
           {searchQuery ? (
             <button onClick={() => onSearchChange?.('')} title="Effacer">
