@@ -10,7 +10,7 @@ const BAR_COLORS = ['#f13544', '#d81f2e', '#b91825', '#9c141f', '#7f0f18']
  */
 export default function TopChannelsChart() {
   return (
-    <div className="bg-[#081246] rounded-xl p-5 w-full xl:w-[380px] shrink-0">
+    <div className="bg-[#081246] rounded-xl p-5 w-full xl:w-95 shrink-0">
       <div className="mb-4">
         <h3 className="text-white font-semibold text-sm">Canaux les plus actifs</h3>
         <p className="text-[#b6bedd] text-xs">Messages (14 derniers jours)</p>

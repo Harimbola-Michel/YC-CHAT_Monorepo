@@ -1,6 +1,7 @@
 import StatsGrid from '../components/dashboard/StatsGrid'
 import MessagesActivityChart from '../components/dashboard/MessagesActivityChart'
 import TopChannelsChart from '../components/dashboard/TopChannelsChart'
+import TopActiveUsers from '../components/dashboard/TopActiveUsers'
 
 /**
  * DashboardPage
@@ -15,6 +16,8 @@ export default function DashboardPage() {
         <MessagesActivityChart />
         <TopChannelsChart />
       </div>
+
+      <TopActiveUsers />
     </div>
   )
 }

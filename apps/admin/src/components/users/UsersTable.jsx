@@ -30,7 +30,7 @@ export default function UsersTable({ users, onToggleSuspend, onToggleBan, onDele
         </thead>
         <tbody>
           {users.map((user) => (
-            <tr key={user.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
+            <tr key={user.id} className="border-b border-white/5 last:border-0 hover:bg-white/3">
               <td className="px-5 py-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div

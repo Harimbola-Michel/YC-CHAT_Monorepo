@@ -33,7 +33,7 @@ export default function ChannelsTable({ channels, onEdit, onToggleArchive, onDel
           {channels.map((channel) => {
             const Icon = channel.type === 'voice' ? Volume2 : Hash
             return (
-              <tr key={channel.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
+              <tr key={channel.id} className="border-b border-white/5 last:border-0 hover:bg-white/3">
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-2 min-w-0">
                     <Icon className="w-4 h-4 text-[#b6bedd] shrink-0" strokeWidth={1.75} />
