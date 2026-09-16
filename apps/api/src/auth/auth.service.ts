@@ -52,7 +52,13 @@ export class AuthService {
     const payload = { sub: user.id, username: user.username };
     return {
       accessToken: this.jwt.sign(payload),
-      user: { id: user.id, username: user.username, displayName: user.displayName },
+      user: {
+        id: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        email: user.email,
+        avatarColor: user.avatarColor,
+      },
     };
   }
 }

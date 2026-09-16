@@ -14,6 +14,7 @@ import {
   EyeOff,
   Pencil,
 } from 'lucide-react'
+import { useAuth } from '../../hooks/useAuth'
 
 const NAV_SECTIONS = [
   { id: 'account', label: 'Mon compte', icon: User },
@@ -33,22 +34,38 @@ const THEME_SWATCHES = [
   '#f0b232',
 ]
 
+/** Initiales à partir du nom affiché, pour l'avatar de secours (ex: "Michel-Harimbola" -> "MH") */
+function getInitials(name) {
+  if (!name) return '?'
+  return name
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
 /**
  * SettingsModal
  * Fenêtre de paramètres utilisateur.
  * - Desktop (sm+) : colonne latérale fixe + contenu, comme avant.
  * - Mobile : écran liste (icône + libellé + chevron, façon Discord) puis
  *   écran détail par section avec bouton retour — un seul écran à la fois.
- * NB: la plupart des actions sont visuelles/locales (pas de backend réel).
+ * NB: la plupart des actions sont visuelles/locales (pas de backend réel),
+ * sauf l'affichage du compte qui vient désormais de useAuth().
  */
 export default function SettingsModal({ onClose }) {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
+
   const [activeSection, setActiveSection] = useState('account')
   const [mobileScreen, setMobileScreen] = useState('list') // 'list' | 'detail'
   const [searchQuery, setSearchQuery] = useState('')
   const [emailRevealed, setEmailRevealed] = useState(false)
   const [editingUsername, setEditingUsername] = useState(false)
-  const [username, setUsername] = useState('michelharimbola')
+  // Initialisé depuis le vrai user ; édition encore locale (pas de PATCH backend pour l'instant)
+  const [username, setUsername] = useState(user?.displayName ?? user?.username ?? '')
   const [compactMode, setCompactMode] = useState(false)
   const [selectedSwatch, setSelectedSwatch] = useState('#f13544')
   const [notifPrefs, setNotifPrefs] = useState({
@@ -57,10 +74,16 @@ export default function SettingsModal({ onClose }) {
     mentionsOnly: false,
   })
 
+  const displayName = user?.displayName ?? user?.username ?? 'Utilisateur'
+  const initials = getInitials(displayName)
+  const email = user?.email ?? ''
+  const maskedEmail = email ? '•'.repeat(Math.max(email.indexOf('@'), 4)) + email.slice(email.indexOf('@')) : ''
+
   const toggleNotifPref = (key) =>
     setNotifPrefs((prev) => ({ ...prev, [key]: !prev[key] }))
 
   const handleLogout = () => {
+    logout()
     onClose?.()
     navigate('/login')
   }
@@ -111,7 +134,7 @@ export default function SettingsModal({ onClose }) {
               <div className="min-w-0">
                 <p className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1">E-mail</p>
                 <p className="text-[#eef0fa] text-sm truncate">
-                  {emailRevealed ? 'michel.harimbola@gmail.com' : '••••••••••••••••@gmail.com'}
+                  {emailRevealed ? email : maskedEmail}
                 </p>
               </div>
               <button
@@ -307,10 +330,10 @@ export default function SettingsModal({ onClose }) {
         <div className="w-64 shrink-0 bg-[#050f3d] flex flex-col py-6 px-3">
           <div className="flex items-center gap-3 px-2 mb-6">
             <div className="w-10 h-10 rounded-full bg-[#f13544] flex items-center justify-center text-white text-sm font-semibold shrink-0">
-              MH
+              {initials}
             </div>
             <div className="min-w-0">
-              <p className="text-white font-semibold text-sm truncate">Michel-Harimbola</p>
+              <p className="text-white font-semibold text-sm truncate">{displayName}</p>
               <button className="text-[#b6bedd] text-xs hover:underline">Modifier le profil</button>
             </div>
           </div>

@@ -14,7 +14,8 @@ const servers = [
   { id: 'random', label: 'Random', initials: 'RN', color: '#f0b232' },
 ]
 
-function RailButton({ active, color, children, label }) {
+// RailButton EST le bouton (un seul <button> par item, plus de wrapper imbriqué)
+function RailButton({ active, color, children, label, onClick }) {
   return (
     <div className="relative flex items-center w-full justify-center group">
       {/* Pastille active/hover à gauche */}
@@ -24,6 +25,7 @@ function RailButton({ active, color, children, label }) {
         }`}
       />
       <button
+        onClick={onClick}
         title={label}
         style={color ? { backgroundColor: color } : undefined}
         className={`w-12 h-12 flex items-center justify-center text-white font-medium text-sm
@@ -51,37 +53,36 @@ export default function ServerRail() {
 
   return (
     <nav className="w-18 shrink-0 h-full bg-[#00061f] flex flex-col items-center py-3 gap-2 overflow-y-auto">
-      <button onClick={() => navigate('/friends')} className="w-full flex justify-center">
-        <RailButton active={isFriendsActive} color="#f13544" label="Amis / Messages privés">
-          <MessagesSquare className="w-6 h-6" strokeWidth={1.75} />
-        </RailButton>
-      </button>
+      <RailButton
+        active={isFriendsActive}
+        color="#f13544"
+        label="Amis / Messages privés"
+        onClick={() => navigate('/friends')}
+      >
+        <MessagesSquare className="w-6 h-6" strokeWidth={1.75} />
+      </RailButton>
 
       <div className="w-8 h-0.5 bg-[#10163a] rounded-full my-1 shrink-0" />
 
       {servers.map((server) => (
-        <button key={server.id} onClick={() => goToServer(server.id)} className="w-full flex justify-center">
-          <RailButton
-            active={!isFriendsActive && activeServerId === server.id}
-            color={server.color}
-            label={server.label}
-          >
-            {server.initials}
-          </RailButton>
-        </button>
+        <RailButton
+          key={server.id}
+          active={!isFriendsActive && activeServerId === server.id}
+          color={server.color}
+          label={server.label}
+          onClick={() => goToServer(server.id)}
+        >
+          {server.initials}
+        </RailButton>
       ))}
 
-      <button className="w-full flex justify-center">
-        <RailButton active={false} label="Ajouter un serveur">
-          <Plus className="w-6 h-6 text-[#f13544]" strokeWidth={1.75} />
-        </RailButton>
-      </button>
+      <RailButton active={false} label="Ajouter un serveur">
+        <Plus className="w-6 h-6 text-[#f13544]" strokeWidth={1.75} />
+      </RailButton>
 
-      <button className="w-full flex justify-center">
-        <RailButton active={false} label="Explorer">
-          <Compass className="w-6 h-6 text-[#f13544]" strokeWidth={1.75} />
-        </RailButton>
-      </button>
+      <RailButton active={false} label="Explorer">
+        <Compass className="w-6 h-6 text-[#f13544]" strokeWidth={1.75} />
+      </RailButton>
     </nav>
   )
 }
