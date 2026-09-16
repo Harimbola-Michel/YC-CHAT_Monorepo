@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  online
+  idle
+  dnd
+  offline
+}
+
+enum ChannelType {
+  text
+  voice
+}
+
+enum FriendshipStatus {
+  pending
+  accepted
+  blocked
+}
+
+model User {
+  id           String     @id @default(uuid())
+  username     String     @unique
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  displayName  String     @map("display_name")
+  avatarUrl    String?    @map("avatar_url")
+  avatarColor  String     @default("#5b6280") @map("avatar_color")
+  status       UserStatus @default(offline)
+  lastSeenAt   DateTime?  @map("last_seen_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  ownedServers      Server[]                  @relation("ServerOwner")
+  serverMemberships ServerMember[]
+  messages          Message[]
+  directMessages    DirectMessage[]
+  sentRequests      Friendship[]              @relation("FriendshipRequester")
+  receivedRequests  Friendship[]              @relation("FriendshipAddressee")
+  conversations     ConversationParticipant[]
+  roles             UserRole[]
+
+  @@map("users")
+}
+
+model Server {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String   @map("owner_id")
+  owner     User     @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  iconUrl   String?  @map("icon_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  categories Category[]
+  members    ServerMember[]
+  roles      Role[]
+
+  @@map("servers")
+}
+
+model ServerMember {
+  serverId String   @map("server_id")
+  userId   String   @map("user_id")
+  server   Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nickname String?
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  @@id([serverId, userId])
+  @@map("server_members")
+}
+
+model Category {
+  id       String @id @default(uuid())
+  serverId String @map("server_id")
+  server   Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  label    String
+  position Int    @default(0)
+
+  channels Channel[]
+
+  @@map("categories")
+}
+
+model Channel {
+  id         String      @id @default(uuid())
+  categoryId String      @map("category_id")
+  category   Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name       String
+  type       ChannelType @default(text)
+  position   Int         @default(0)
+
+  messages Message[]
+
+  @@map("channels")
+}
+
+model Message {
+  id        String    @id @default(uuid())
+  channelId String    @map("channel_id")
+  channel   Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  authorId  String    @map("author_id")
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  editedAt  DateTime? @map("edited_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  attachments Attachment[]
+
+  @@index([channelId, createdAt])
+  @@map("messages")
+}
+
+model Attachment {
+  id        String  @id @default(uuid())
+  messageId String  @map("message_id")
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  url       String
+  fileType  String? @map("file_type")
+  sizeBytes Int?    @map("size_bytes")
+
+  @@map("attachments")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  serverId    String   @map("server_id")
+  server      Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  name        String
+  color       String   @default("#99aab5")
+  permissions BigInt   @default(0)
+
+  users UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId String @map("user_id")
+  roleId String @map("role_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Friendship {
+  id          String           @id @default(uuid())
+  requesterId String           @map("requester_id")
+  requester   User             @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addresseeId String           @map("addressee_id")
+  addressee   User             @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  status      FriendshipStatus @default(pending)
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  @@unique([requesterId, addresseeId])
+  @@map("friendships")
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  isGroup   Boolean  @default(false) @map("is_group")
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  participants ConversationParticipant[]
+  messages     DirectMessage[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  conversationId String       @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String       @map("user_id")
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt       DateTime     @default(now()) @map("joined_at")
+
+  @@id([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model DirectMessage {
+  id             String       @id @default(uuid())
+  conversationId String       @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  authorId       String       @map("author_id")
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content        String
+  editedAt       DateTime?    @map("edited_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@index([conversationId, createdAt])
+  @@map("direct_messages")
+}
