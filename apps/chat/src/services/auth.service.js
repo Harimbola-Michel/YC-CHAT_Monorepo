@@ -1,6 +1,39 @@
-/**
- * auth.service
- * Appels réseau liés à l'authentification (login, register, logout, refresh token).
- */
+import api from './api.service'
 
-// TODO: login(credentials), register(data), logout(), getCurrentUser()
+/**
+ * Appelle POST /auth/register.
+ * Le backend attend { username, email, displayName, password }.
+ */
+export async function registerUser({ email, username, displayName, password }) {
+  const { data } = await api.post('/auth/register', {
+    email,
+    username,
+    displayName: displayName || username,
+    password,
+  })
+  return data // { accessToken, user }
+}
+
+export async function loginUser({ email, password }) {
+  const { data } = await api.post('/auth/login', { email, password })
+  return data
+}
+
+export function saveSession({ accessToken, user }) {
+  localStorage.setItem('accessToken', accessToken)
+  localStorage.setItem('user', JSON.stringify(user))
+}
+
+export function getCurrentUser() {
+  const raw = localStorage.getItem('user')
+  return raw ? JSON.parse(raw) : null
+}
+
+export function isAuthenticated() {
+  return Boolean(localStorage.getItem('accessToken'))
+}
+
+export function logout() {
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('user')
+}

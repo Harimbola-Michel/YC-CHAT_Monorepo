@@ -1,15 +1,18 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import Button from '../components/ui/Button'
+import { useLoginForm } from '../hooks/useLoginForm'
 
 /**
  * LoginPage
  * Plein écran sur mobile, carte centrée sur desktop/tablette.
  * Palette : gris / blanc / noir, avec fuchsia (#f13544) en accent.
+ *
+ * Purement présentationnel : toute la logique vit dans useLoginForm.
  */
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
+  const { form, showPassword, error, loading, handleChange, toggleShowPassword, handleSubmit } =
+    useLoginForm()
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-white sm:bg-gray-100 sm:px-4 sm:py-8">
@@ -30,13 +33,23 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* Message d'erreur */}
+        {error && (
+          <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-[#f13544]">
+            {error}
+          </div>
+        )}
+
         {/* Formulaire */}
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <label className="flex items-center gap-3 bg-gray-100 rounded-full px-5 py-3.5">
             <Mail className="w-5 h-5 text-gray-500 shrink-0" strokeWidth={1.75} />
             <input
               type="email"
               placeholder="E-mail"
+              value={form.email}
+              onChange={handleChange('email')}
+              required
               className="bg-transparent outline-none w-full text-black placeholder:text-gray-400 text-[15px]"
             />
           </label>
@@ -46,11 +59,14 @@ export default function LoginPage() {
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
+              value={form.password}
+              onChange={handleChange('password')}
+              required
               className="bg-transparent outline-none w-full text-black placeholder:text-gray-400 text-[15px]"
             />
             <button
               type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
+              onClick={toggleShowPassword}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
               className="shrink-0 text-gray-500"
             >
@@ -70,9 +86,10 @@ export default function LoginPage() {
 
           <Button
             type="submit"
-            className="!w-full !rounded-full !py-3.5 !bg-[#f13544] hover:!bg-[#d81f2e] !text-base"
+            disabled={loading}
+            className="!w-full !rounded-full !py-3.5 !bg-[#f13544] hover:!bg-[#d81f2e] !text-base disabled:opacity-60"
           >
-            Sign in
+            {loading ? 'Connexion...' : 'Sign in'}
           </Button>
         </form>
 

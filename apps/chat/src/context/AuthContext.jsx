@@ -1,18 +1,51 @@
-import { createContext, useContext } from 'react'
+import { createContext, useState } from 'react'
+import {
+  registerUser,
+  loginUser,
+  saveSession,
+  getCurrentUser,
+  logout as clearSession,
+} from '../services/auth.service'
+
+export const AuthContext = createContext(null)
 
 /**
- * AuthContext
- * Fournit l'état d'authentification (utilisateur courant, token, etc.) à l'application.
+ * Fournit l'état d'authentification à toute l'app.
+ * À placer autour des routes, par ex. dans App.jsx :
+ *
+ *   <AuthProvider>
+ *     <RouterProvider router={router} />
+ *   </AuthProvider>
  */
-const AuthContext = createContext(null)
-
 export function AuthProvider({ children }) {
-  const value = {
-    // TODO: user, isAuthenticated, login(), logout()
-  }
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
+  const [user, setUser] = useState(() => getCurrentUser())
 
-export function useAuthContext() {
-  return useContext(AuthContext)
+  async function register(payload) {
+    const { accessToken, user: newUser } = await registerUser(payload)
+    saveSession({ accessToken, user: newUser })
+    setUser(newUser)
+    return newUser
+  }
+
+  async function login(credentials) {
+    const { accessToken, user: loggedInUser } = await loginUser(credentials)
+    saveSession({ accessToken, user: loggedInUser })
+    setUser(loggedInUser)
+    return loggedInUser
+  }
+
+  function logout() {
+    clearSession()
+    setUser(null)
+  }
+
+  const value = {
+    user,
+    isAuthenticated: Boolean(user),
+    register,
+    login,
+    logout,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
