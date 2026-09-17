@@ -29,6 +29,14 @@ export function getCurrentUser() {
   return raw ? JSON.parse(raw) : null
 }
 
+/** Fusionne les champs mis à jour (ex: username/email) dans la session stockée */
+export function updateStoredUser(patch) {
+  const current = getCurrentUser()
+  const updated = { ...current, ...patch }
+  localStorage.setItem('user', JSON.stringify(updated))
+  return updated
+}
+
 export function isAuthenticated() {
   return Boolean(localStorage.getItem('accessToken'))
 }

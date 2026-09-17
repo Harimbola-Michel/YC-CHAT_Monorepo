@@ -9,6 +9,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: config.get<string>('CORS_ORIGIN', 'http://localhost:5173'),
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
 

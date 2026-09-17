@@ -15,6 +15,8 @@ import {
   Pencil,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useProfileForm } from '../../hooks/useProfileForm'
+import { usePasswordForm } from '../../hooks/usePasswordForm'
 
 const NAV_SECTIONS = [
   { id: 'account', label: 'Mon compte', icon: User },
@@ -53,19 +55,18 @@ function getInitials(name) {
  * - Mobile : écran liste (icône + libellé + chevron, façon Discord) puis
  *   écran détail par section avec bouton retour — un seul écran à la fois.
  * NB: la plupart des actions sont visuelles/locales (pas de backend réel),
- * sauf l'affichage du compte qui vient désormais de useAuth().
+ * sauf le compte (useAuth) et l'édition username/email (useProfileForm).
  */
 export default function SettingsModal({ onClose }) {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const profile = useProfileForm()
+  const password = usePasswordForm()
 
   const [activeSection, setActiveSection] = useState('account')
   const [mobileScreen, setMobileScreen] = useState('list') // 'list' | 'detail'
   const [searchQuery, setSearchQuery] = useState('')
   const [emailRevealed, setEmailRevealed] = useState(false)
-  const [editingUsername, setEditingUsername] = useState(false)
-  // Initialisé depuis le vrai user ; édition encore locale (pas de PATCH backend pour l'instant)
-  const [username, setUsername] = useState(user?.displayName ?? user?.username ?? '')
   const [compactMode, setCompactMode] = useState(false)
   const [selectedSwatch, setSelectedSwatch] = useState('#f13544')
   const [notifPrefs, setNotifPrefs] = useState({
@@ -77,7 +78,9 @@ export default function SettingsModal({ onClose }) {
   const displayName = user?.displayName ?? user?.username ?? 'Utilisateur'
   const initials = getInitials(displayName)
   const email = user?.email ?? ''
-  const maskedEmail = email ? '•'.repeat(Math.max(email.indexOf('@'), 4)) + email.slice(email.indexOf('@')) : ''
+  const maskedEmail = email
+    ? '•'.repeat(Math.max(email.indexOf('@'), 4)) + email.slice(email.indexOf('@'))
+    : ''
 
   const toggleNotifPref = (key) =>
     setNotifPrefs((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -105,55 +108,222 @@ export default function SettingsModal({ onClose }) {
         <section>
           <h2 className="text-white text-lg font-semibold mb-6 hidden sm:block">Mon compte</h2>
           <div className="space-y-5">
-            <div className="flex items-center justify-between gap-3 bg-[#081246] rounded-lg px-4 py-3">
-              <div className="min-w-0">
-                <p className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1">Nom d'utilisateur</p>
-                {editingUsername ? (
-                  <input
-                    autoFocus
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    onBlur={() => setEditingUsername(false)}
-                    onKeyDown={(e) => e.key === 'Enter' && setEditingUsername(false)}
-                    className="bg-[#10184f] text-white text-sm rounded px-2 py-1 outline-none w-full"
-                  />
-                ) : (
-                  <p className="text-[#eef0fa] text-sm truncate">{username}</p>
-                )}
-              </div>
-              <button
-                onClick={() => setEditingUsername((prev) => !prev)}
-                className="flex items-center gap-1.5 text-sm text-white bg-white/10 hover:bg-white/20 rounded-md px-3 py-1.5 transition-colors shrink-0"
-              >
-                <Pencil className="w-3.5 h-3.5" strokeWidth={1.75} />
-                <span className="hidden sm:inline">Modifier</span>
-              </button>
+            {/* Bloc username + email — édités et sauvegardés ensemble */}
+            <div className="bg-[#081246] rounded-lg px-4 py-4">
+              {profile.editing ? (
+                <form onSubmit={profile.handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1 block">
+                      Nom d'utilisateur
+                    </label>
+                    <input
+                      autoFocus
+                      value={profile.form.username}
+                      onChange={profile.handleChange('username')}
+                      required
+                      minLength={3}
+                      className="bg-[#10184f] text-white text-sm rounded px-3 py-2 outline-none w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1 block">
+                      E-mail
+                    </label>
+                    <input
+                      type="email"
+                      value={profile.form.email}
+                      onChange={profile.handleChange('email')}
+                      required
+                      className="bg-[#10184f] text-white text-sm rounded px-3 py-2 outline-none w-full"
+                    />
+                  </div>
+
+                  {profile.error && (
+                    <p className="text-[#f13544] text-sm">{profile.error}</p>
+                  )}
+
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={profile.cancelEditing}
+                      className="text-sm text-[#b6bedd] hover:text-white px-3 py-1.5 transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={profile.saving}
+                      className="text-sm text-white bg-[#f13544] hover:bg-[#d81f2e] rounded-md px-4 py-1.5 transition-colors disabled:opacity-60"
+                    >
+                      {profile.saving ? 'Enregistrement...' : 'Enregistrer'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="space-y-3 min-w-0">
+                    <div>
+                      <p className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1">
+                        Nom d'utilisateur
+                      </p>
+                      <p className="text-[#eef0fa] text-sm truncate">{user?.username}</p>
+                    </div>
+                    <div>
+                      <p className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1">E-mail</p>
+                      <p className="text-[#eef0fa] text-sm truncate">
+                        {emailRevealed ? email : maskedEmail}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 shrink-0">
+                    <button
+                      onClick={() => setEmailRevealed((prev) => !prev)}
+                      className="flex items-center gap-1.5 text-sm text-white bg-white/10 hover:bg-white/20 rounded-md px-3 py-1.5 transition-colors"
+                    >
+                      {emailRevealed ? (
+                        <EyeOff className="w-3.5 h-3.5" strokeWidth={1.75} />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" strokeWidth={1.75} />
+                      )}
+                      <span className="hidden sm:inline">
+                        {emailRevealed ? 'Masquer' : 'Afficher'}
+                      </span>
+                    </button>
+                    <button
+                      onClick={profile.startEditing}
+                      className="flex items-center gap-1.5 text-sm text-white bg-white/10 hover:bg-white/20 rounded-md px-3 py-1.5 transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" strokeWidth={1.75} />
+                      <span className="hidden sm:inline">Modifier</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center justify-between gap-3 bg-[#081246] rounded-lg px-4 py-3">
-              <div className="min-w-0">
-                <p className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1">E-mail</p>
-                <p className="text-[#eef0fa] text-sm truncate">
-                  {emailRevealed ? email : maskedEmail}
-                </p>
-              </div>
-              <button
-                onClick={() => setEmailRevealed((prev) => !prev)}
-                className="flex items-center gap-1.5 text-sm text-white bg-white/10 hover:bg-white/20 rounded-md px-3 py-1.5 transition-colors shrink-0"
-              >
-                {emailRevealed ? <EyeOff className="w-3.5 h-3.5" strokeWidth={1.75} /> : <Eye className="w-3.5 h-3.5" strokeWidth={1.75} />}
-                <span className="hidden sm:inline">{emailRevealed ? 'Masquer' : 'Afficher'}</span>
-              </button>
-            </div>
+            {/* Mot de passe — flux séparé, sa propre édition/sauvegarde */}
+            <div className="bg-[#081246] rounded-lg px-4 py-4">
+              {password.editing ? (
+                <form onSubmit={password.handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1 block">
+                      Mot de passe actuel
+                    </label>
+                    <div className="flex items-center gap-2 bg-[#10184f] rounded px-3 py-2">
+                      <input
+                        autoFocus
+                        type={password.showCurrentPassword ? 'text' : 'password'}
+                        value={password.form.currentPassword}
+                        onChange={password.handleChange('currentPassword')}
+                        required
+                        className="bg-transparent outline-none text-white text-sm w-full"
+                      />
+                      <button
+                        type="button"
+                        onClick={password.toggleShowCurrentPassword}
+                        aria-label={password.showCurrentPassword ? 'Hide password' : 'Show password'}
+                        className="shrink-0 text-[#b6bedd] hover:text-white"
+                      >
+                        {password.showCurrentPassword ? (
+                          <EyeOff className="w-4 h-4" strokeWidth={1.75} />
+                        ) : (
+                          <Eye className="w-4 h-4" strokeWidth={1.75} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1 block">
+                      Nouveau mot de passe
+                    </label>
+                    <div className="flex items-center gap-2 bg-[#10184f] rounded px-3 py-2">
+                      <input
+                        type={password.showNewPassword ? 'text' : 'password'}
+                        value={password.form.newPassword}
+                        onChange={password.handleChange('newPassword')}
+                        required
+                        minLength={8}
+                        className="bg-transparent outline-none text-white text-sm w-full"
+                      />
+                      <button
+                        type="button"
+                        onClick={password.toggleShowNewPassword}
+                        aria-label={password.showNewPassword ? 'Hide password' : 'Show password'}
+                        className="shrink-0 text-[#b6bedd] hover:text-white"
+                      >
+                        {password.showNewPassword ? (
+                          <EyeOff className="w-4 h-4" strokeWidth={1.75} />
+                        ) : (
+                          <Eye className="w-4 h-4" strokeWidth={1.75} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1 block">
+                      Confirmer le nouveau mot de passe
+                    </label>
+                    <div className="flex items-center gap-2 bg-[#10184f] rounded px-3 py-2">
+                      <input
+                        type={password.showConfirmNewPassword ? 'text' : 'password'}
+                        value={password.form.confirmNewPassword}
+                        onChange={password.handleChange('confirmNewPassword')}
+                        required
+                        className="bg-transparent outline-none text-white text-sm w-full"
+                      />
+                      <button
+                        type="button"
+                        onClick={password.toggleShowConfirmNewPassword}
+                        aria-label={password.showConfirmNewPassword ? 'Hide password' : 'Show password'}
+                        className="shrink-0 text-[#b6bedd] hover:text-white"
+                      >
+                        {password.showConfirmNewPassword ? (
+                          <EyeOff className="w-4 h-4" strokeWidth={1.75} />
+                        ) : (
+                          <Eye className="w-4 h-4" strokeWidth={1.75} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
 
-            <div className="flex items-center justify-between gap-3 bg-[#081246] rounded-lg px-4 py-3">
-              <div className="min-w-0">
-                <p className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1">Mot de passe</p>
-                <p className="text-[#eef0fa] text-sm">••••••••••••</p>
-              </div>
-              <button className="text-sm text-white bg-white/10 hover:bg-white/20 rounded-md px-3 py-1.5 transition-colors shrink-0">
-                Modifier
-              </button>
+                  {password.error && (
+                    <p className="text-[#f13544] text-sm">{password.error}</p>
+                  )}
+
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={password.cancelEditing}
+                      className="text-sm text-[#b6bedd] hover:text-white px-3 py-1.5 transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={password.saving}
+                      className="text-sm text-white bg-[#f13544] hover:bg-[#d81f2e] rounded-md px-4 py-1.5 transition-colors disabled:opacity-60"
+                    >
+                      {password.saving ? 'Enregistrement...' : 'Enregistrer'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[#b6bedd] text-xs uppercase tracking-wide mb-1">Mot de passe</p>
+                    <p className="text-[#eef0fa] text-sm">••••••••••••</p>
+                    {password.success && (
+                      <p className="text-[#23a55a] text-xs mt-1">Mot de passe mis à jour.</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={password.startEditing}
+                    className="text-sm text-white bg-white/10 hover:bg-white/20 rounded-md px-3 py-1.5 transition-colors shrink-0"
+                  >
+                    Modifier
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </section>

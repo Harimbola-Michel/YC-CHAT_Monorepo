@@ -12,6 +12,11 @@ export function validateSignupPassword(password, confirmPassword) {
   return null
 }
 
+/** Même règle que l'inscription, réutilisée pour le changement de mot de passe */
+export function validateNewPassword(newPassword, confirmNewPassword) {
+  return validateSignupPassword(newPassword, confirmNewPassword)
+}
+
 /** Normalise les erreurs renvoyées par l'API (class-validator renvoie un tableau) */
 export function extractErrorMessage(err, fallback) {
   const message = err.response?.data?.message

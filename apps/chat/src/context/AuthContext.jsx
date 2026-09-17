@@ -4,8 +4,10 @@ import {
   loginUser,
   saveSession,
   getCurrentUser,
+  updateStoredUser,
   logout as clearSession,
 } from '../services/auth.service'
+import { updateProfile as updateProfileRequest } from '../services/users.service'
 
 export const AuthContext = createContext(null)
 
@@ -39,12 +41,21 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  // Un seul point d'entrée pour modifier username et/ou email
+  async function updateProfile(payload) {
+    const updatedUser = await updateProfileRequest(payload)
+    const merged = updateStoredUser(updatedUser)
+    setUser(merged)
+    return merged
+  }
+
   const value = {
     user,
     isAuthenticated: Boolean(user),
     register,
     login,
     logout,
+    updateProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
